@@ -1,3 +1,4 @@
+APP_VERSION = 0.001
 from time import sleep
 from vk_api import VkApi
 from vk_api import longpoll
@@ -5,6 +6,7 @@ from vk_api.exceptions import Captcha, VkApiError
 from vk_api.longpoll import VkEventType, VkLongPoll
 from random import randint, choice
 import json
+from requests import get
 from os import system, name
 
 from colorama import init, Fore
@@ -18,6 +20,27 @@ def clear():
 
 with open('config.json', 'r') as f:
     config = json.load(f)
+
+def installUpdate():
+    r = get('https://raw.githubusercontent.com/insan1tyyy/troll/main/main.py').text
+    r = r.replace('\r', '')
+    with open('comments.py', 'w', encoding='utf-8') as f:
+        f.write(r)
+    print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.")
+    exit()
+
+def checkUpdates():
+    r:str = get('https://raw.githubusercontent.com/insan1tyyy/troll/main/main.py').text
+    r = r.split('\r\n', maxsplit=1)[0]
+    app_ver = float(r.replace('APP_VERSION = ', ''))
+    if APP_VERSION < app_ver:
+        confirm = input("Доступно обновление. Чтобы установить - нажми ENTER, Чтобы пропустить - напиши любой символ")
+        if not confirm:
+            installUpdate()
+        else:
+            return
+
+checkUpdates()
 
 def login():
     while True:
@@ -83,7 +106,7 @@ def setupSpam():
     print(f"{Fore.RED}СПАМ В ЧАТ\n{Fore.CYAN}Введи id чата, если это беседа, id чата выглядит так: c74 (отсюда надо взять только число). Если в личку, можно отправить ссылку на пользователя, либо его id.")
     chat = input(">>> ")
     if chat.isdigit():
-        if int(chat) < 2000:
+        if int(chat) < 10000:
             getChat = vk.messages.getChat(chat_id = int(chat))
             print(f"{Fore.GREEN}Запускаю спам на", getChat['title'])
             spamChat(chat_id = int(chat), users = getChat['users'])
