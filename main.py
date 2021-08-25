@@ -1,4 +1,4 @@
-APP_VERSION = 0.002
+APP_VERSION = 0.003
 from time import sleep
 from vk_api import VkApi
 from vk_api import longpoll
@@ -44,9 +44,12 @@ checkUpdates()
 
 def login():
     while True:
-        token = input("Введи токен от страницы. Если хочешь использовать несколько токенов, впиши их, разделив знаком ;\n\n>>> ")
+        token = input("Для работы необходим токен\nВзять его можно с сайта vkhost.github.io\nСоздавать токен следует со всеми правами (с помощью кнопки 'Настройки' на сайте)\n\nВведи токен либо полученную ссылку с сайта.\n\n>>> ")
     
         try:
+            if 'access_token=' in token:
+                token = token.split('access_token=')[1]
+                token = token[:85]
             user = VkApi(token=token).get_api().users.get()[0]
             name = '{} {}'.format(user['first_name'], user['last_name'])
             print(f'{Fore.YELLOW} Успешная авторизация как {name} !')
@@ -57,7 +60,7 @@ def login():
             continue
 
 def answerTokens():
-    a = input("Если хочешь вставить новые токен, введи любой символ, иначе нажми ENTER, оставив поле пустым.\n\n>>> ")
+    a = input("Если хочешь вставить новый токен, введи любой символ, иначе нажми ENTER, оставив поле пустым.\n\n>>> ")
     if a:
         config['token'] = login()
         with open('config.json', 'w') as f:
