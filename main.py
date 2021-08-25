@@ -1,4 +1,4 @@
-APP_VERSION = 0.004
+APP_VERSION = 0.003
 from time import sleep
 from vk_api import VkApi
 from vk_api import longpoll
@@ -24,7 +24,7 @@ with open('config.json', 'r') as f:
 def installUpdate():
     r = get('https://raw.githubusercontent.com/insan1tyyy/troll/main/main.py').text
     r = r.replace('\r', '')
-    with open('comments.py', 'w', encoding='utf-8') as f:
+    with open('main.py', 'w', encoding='utf-8') as f:
         f.write(r)
     print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.")
     exit()
