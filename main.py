@@ -1,4 +1,4 @@
-APP_VERSION = 0.001
+APP_VERSION = 0.002
 from time import sleep
 from vk_api import VkApi
 from vk_api import longpoll
