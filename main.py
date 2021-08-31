@@ -1,4 +1,4 @@
-APP_VERSION = 0.007
+APP_VERSION = 0.008
 from time import sleep
 from vk_api import VkApi
 from vk_api.exceptions import Captcha, VkApiError
@@ -111,26 +111,31 @@ def setupSpam():
     while 1:
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW and event.from_me:
-                if event.message.lower() == phrase.lower():
+                if phrase.lower() in event.message.lower():
                     if event.peer_id > 2000000000:
-                        if not event.attachments.get('reply'):
-                            user = None
-                        else: 
-                            reply = vk.messages.getByConversationMessageId(
-                                peer_id = event.peer_id, 
-                                conversation_message_ids = event.attachments['reply'].split(':')[1].replace('}', ''))
-                            user = reply['items'][0]['from_id']
+                        if '@' in event.text and 'id' in event.text:
+                            user_id = int(event.text.lower().split("[id")[1].split("|")[0])
+                            user_ = vk.users.get(user_ids = user_id)[0]
+                            user = user_['id']
+                        else:
+                            if not event.attachments.get('reply'):
+                                user = None
+                            else: 
+                                reply = vk.messages.getByConversationMessageId(
+                                    peer_id = event.peer_id, 
+                                    conversation_message_ids = event.attachments['reply'].split(':')[1].replace('}', ''))
+                                user = reply['items'][0]['from_id']
                         chatInfo = vk.messages.getConversationsById(peer_ids = event.peer_id)['items'][0]['chat_settings']
-                        print(f"{Fore.LIGHTMAGENTA_EX}Спам в беседу с названием {Fore.YELLOW}" + chatInfo['title'] + f' {Fore.LIGHTMAGENTA_EX} запущен!')
+                        print(f"{Fore.LIGHTMAGENTA_EX}Спам в беседу с названием {Fore.YELLOW}" + chatInfo['title'] + f' {Fore.LIGHTMAGENTA_EX}запущен!')
+                        vk.messages.edit(message_id = event.message_id, peer_id = event.peer_id, message = 'OK')
                         spamChat(event.peer_id, user)
                     else:
                         user = vk.users.get(user_ids = event.peer_id)[0]
                         name = "{0} {1}".format(user['first_name'], user['last_name'])
                         print(f"{Fore.LIGHTMAGENTA_EX}Спам пользователю с именем {Fore.YELLOW}" + name + f' {Fore.LIGHTMAGENTA_EX} запущен!')
+                        vk.messages.edit(message_id = event.message_id, peer_id = event.peer_id, message = 'OK')
                         spamChat(event.peer_id, user)
 
-
-    
 
 def spamChat(peer_id, user = None):
     while True:
@@ -139,7 +144,8 @@ def spamChat(peer_id, user = None):
                 patterns = f.read().split('\n')
             if not patterns:
                 return
-            
+            if not user:
+                user = '1'
             vk.messages.send(random_id = 0, peer_id = peer_id, message = f"@id" + str(user) + "(" + choice(patterns) + ")")
             sleep(randint(1,2))
         except VkApiError:
@@ -149,28 +155,6 @@ def spamChat(peer_id, user = None):
             print(f"{Fore.RED}Капча, пауза на 10 сек...")
             sleep(10)
             pass
-
-
-def spamUser(user_id):
-    while True:
-        try:
-            with open('patterns.txt', 'r', encoding='utf-8') as f:
-                patterns = f.read().split('\n')
-            if not patterns:
-                return
-            peer_id = user_id
-            vk.messages.send(random_id = 0, peer_id = peer_id, message = f"@id" + str(user_id) + "(" + choice(patterns) + ")")
-            sleep(randint(1,2))
-        except VkApiError:
-            print(f"{Fore.RED}Ошибка АПИ.")
-            pass
-        except Captcha:
-            print(f"{Fore.RED}Капча, пауза на 10 сек...")
-            sleep(10)
-            pass
-
-
-
 
 def answerTroll(event, vk):
     with open('patterns.txt', 'r', encoding='utf-8') as f:
