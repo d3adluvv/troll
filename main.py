@@ -1,7 +1,6 @@
-APP_VERSION = 0.005
+APP_VERSION = 0.006
 from time import sleep
 from vk_api import VkApi
-from vk_api import longpoll
 from vk_api.exceptions import Captcha, VkApiError
 from vk_api.longpoll import VkEventType, VkLongPoll
 from random import randint, choice
@@ -106,29 +105,42 @@ def setupTroll():
 
 def setupSpam():
     clear()
-    print(f"{Fore.RED}СПАМ В ЧАТ\n{Fore.CYAN}Введи id чата, если это беседа, id чата выглядит так: c74 (отсюда надо взять только число). Если в личку, можно отправить ссылку на пользователя, либо его id.")
-    chat = input(">>> ")
-    if chat.isdigit():
-        if int(chat) < 10000:
-            getChat = vk.messages.getChat(chat_id = int(chat))
-            print(f"{Fore.GREEN}Запускаю спам на", getChat['title'])
-            spamChat(chat_id = int(chat), users = getChat['users'])
+    print(f"{Fore.RED}СПАМ В ЧАТ\n{Fore.CYAN} Введи кодовое слово, которое запустит спам (Пример: troll)")
+    phrase = input(">>> ")
+    print(f"{Fore.YELLOW} Отправь {Fore.RED}{phrase}{Fore.YELLOW} в чат, в который хочешь спамить. Если к {Fore.RED}{phrase}{Fore.YELLOW} прикрепить реплай (ответ на сообщение), будет установлен теггинг автора реплая")
+    while 1:
+        for event in longpoll.listen():
+            if event.type == VkEventType.MESSAGE_NEW and event.from_me:
+                if event.message.lower() == phrase.lower():
+                    if event.peer_id > 2000000000:
+                        if not event.attachments.get('reply'):
+                            user = None
+                        else: 
+                            reply = vk.messages.getByConversationMessageId(
+                                peer_id = event.peer_id, 
+                                conversation_message_ids = event.attachments['reply'].split(':')[1].replace('}', ''))
+                            user = reply['items'][0]['from_id']
+                        chatInfo = vk.messages.getConversationsById(peer_ids = event.peer_id)['items'][0]['chat_settings']
+                        print(f"{Fore.LIGHTMAGENTA_EX}Спам в беседу с названием {Fore.YELLOW}" + chatInfo['title'] + f' {Fore.LIGHTMAGENTA_EX} запущен!')
+                        spamChat(event.peer_id, user)
+                    else:
+                        user = vk.users.get(user_ids = event.peer_id)[0]
+                        name = "{0} {1}".format(user['first_name'], user['last_name'])
+                        print(f"{Fore.LIGHTMAGENTA_EX}Спам пользователю с именем {Fore.YELLOW}" + name + f' {Fore.LIGHTMAGENTA_EX} запущен!')
+                        spamChat(event.peer_id, user)
 
-    if '/' in chat:
-        user = vk.users.get(user_ids = chat.split('/')[-1], name_case='Acc')[0]
-        print(f"{Fore.GREEN}Запускаю спам на", user['first_name'], user['last_name'])
-        spamUser(user['id'])
-    return
 
-def spamChat(chat_id, users):
+    
+
+def spamChat(peer_id, user = None):
     while True:
         try:
             with open('patterns.txt', 'r', encoding='utf-8') as f:
                 patterns = f.read().split('\n')
             if not patterns:
                 return
-            peer_id = 2000000000 + chat_id
-            vk.messages.send(random_id = 0, peer_id = peer_id, message = f"@id" + str(choice(users)) + "(" + choice(patterns) + ")")
+            
+            vk.messages.send(random_id = 0, peer_id = peer_id, message = f"@id" + str(user) + "(" + choice(patterns) + ")")
             sleep(randint(1,2))
         except VkApiError:
             print(f"{Fore.RED}Ошибка АПИ.")
