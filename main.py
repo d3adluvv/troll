@@ -1,4 +1,4 @@
-APP_VERSION = 0.006
+APP_VERSION = 0.007
 from time import sleep
 from vk_api import VkApi
 from vk_api.exceptions import Captcha, VkApiError
