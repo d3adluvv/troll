@@ -1,4 +1,4 @@
-APP_VERSION = 0.00900002
+APP_VERSION = 0.00900001
 from time import sleep
 from twocaptcha.api import ApiException
 from vk_api import VkApi
@@ -12,11 +12,9 @@ from twocaptcha import TwoCaptcha
 from colorama import init, Fore
 init()
 
-changelog = '''
-Добавлена антикапча
-перед запуском введи следующую команду:
-pip install 2captcha-python
-'''
+
+def changelog():
+    return get('https://raw.githubusercontent.com/insan1tyyy/troll/main/changelog.txt').content
 
 def handleCaptcha(captcha):
     if not config.get('key'):
@@ -50,7 +48,7 @@ def installUpdate():
     r = r.replace('\r', '')
     with open('main.py', 'w', encoding='utf-8') as f:
         f.write(r)
-    print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.\nСписок изменений:\n{changelog}")
+    print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.\nСписок изменений:\n", changelog())
     exit()
 
 def checkUpdates():
