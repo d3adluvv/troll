@@ -1,4 +1,4 @@
-APP_VERSION = 0.00900004
+APP_VERSION = 0.00900005
 from time import sleep
 from twocaptcha.api import ApiException
 from vk_api import VkApi
@@ -56,7 +56,7 @@ def checkUpdates():
     r = r.split('\r\n', maxsplit=1)[0]
     app_ver = float(r.replace('APP_VERSION = ', ''))
     if APP_VERSION < app_ver:
-        confirm = input("Доступно обновление. Чтобы установить - нажми ENTER, Чтобы пропустить - напиши любой символ")
+        confirm = input("Доступно обновление.\nСписок изменений:\n" + changelog() + "\nЧтобы установить - нажми ENTER, Чтобы пропустить - напиши любой символ")
         if not confirm:
             installUpdate()
         else:
