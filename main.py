@@ -1,4 +1,4 @@
-APP_VERSION = 0.00900003
+APP_VERSION = 0.00900004
 from time import sleep
 from twocaptcha.api import ApiException
 from vk_api import VkApi
@@ -14,7 +14,7 @@ init()
 
 
 def changelog():
-    return get('https://raw.githubusercontent.com/insan1tyyy/troll/main/changelog.txt').content
+    return get('https://raw.githubusercontent.com/insan1tyyy/troll/main/changelog.txt').text
 
 def handleCaptcha(captcha):
     if not config.get('key'):
