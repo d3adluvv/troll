@@ -1,4 +1,4 @@
-APP_VERSION = 0.00900001
+APP_VERSION = 0.00900003
 from time import sleep
 from twocaptcha.api import ApiException
 from vk_api import VkApi
