@@ -1,5 +1,6 @@
-APP_VERSION = 0.008
+APP_VERSION = 0.00900002
 from time import sleep
+from twocaptcha.api import ApiException
 from vk_api import VkApi
 from vk_api.exceptions import Captcha, VkApiError
 from vk_api.longpoll import VkEventType, VkLongPoll
@@ -7,9 +8,33 @@ from random import randint, choice
 import json
 from requests import get
 from os import system, name
-
+from twocaptcha import TwoCaptcha
 from colorama import init, Fore
 init()
+
+changelog = '''
+Добавлена антикапча
+перед запуском введи следующую команду:
+pip install 2captcha-python
+'''
+
+def handleCaptcha(captcha):
+    if not config.get('key'):
+        return
+    solver = TwoCaptcha(config['key'])
+    print(f"{Fore.YELLOW}Решаю капчу...")
+    open('captcha.jpg', 'wb').write(get(captcha.get_url()).content)
+    while True:
+        try:
+            result = solver.normal('captcha.jpg')
+        except ApiException as e:
+            print('Произошла ошибка во время капчи. Код ошибки: ', e.args[0])
+            return
+        if 'code' in result:
+            print(f'{Fore.GREEN}Капча решена, код: ', result['code'])
+            return captcha.try_again(result['code'])
+        else:
+            continue
 
 def clear():
     if name == 'nt':
@@ -25,7 +50,7 @@ def installUpdate():
     r = r.replace('\r', '')
     with open('main.py', 'w', encoding='utf-8') as f:
         f.write(r)
-    print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.")
+    print(f"{Fore.CYAN}Обновление успешно установлено! Запусти скрипт заново.\nСписок изменений:\n{changelog}")
     exit()
 
 def checkUpdates():
@@ -68,6 +93,22 @@ def answerTokens():
     else:
         return
 
+def loginCaptcha():
+    print("Если хочешь решать капчу через RuCaptcha - зарегистрируйся на сайте rucaptcha.com, пополни баланс и введи API KEY из личного кабинета, либо оставь поле пустым чтобы не подключать антикапчу.")
+    a = input(">>> ")
+    if a:
+        config['key'] = a
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent = 4)
+    return
+
+def answerCaptcha():
+    print("Если хочешь изменить API KEY антикапчи - введи любой символ, либо оставь поле пустым чтобы продолжить.")
+    a = input(">>> ")
+    if a:
+        loginCaptcha()
+    return
+
 if not config['token']:
     config['token'] = login()
     with open('config.json', 'w') as f: 
@@ -75,8 +116,13 @@ if not config['token']:
 else:
     answerTokens()
 
+if not config.get('key'):
+    loginCaptcha()
+else:
+    answerCaptcha()
+
 cmdlist = f'{Fore.CYAN}[0] {Fore.GREEN} Автоответчик\n{Fore.CYAN}[1] {Fore.GREEN} Спам в чат'
-vk_session = VkApi(token = config['token'])
+vk_session = VkApi(token = config['token'], captcha_handler=handleCaptcha)
 vk = vk_session.get_api()
 longpoll = VkLongPoll(vk_session)
 
@@ -134,27 +180,25 @@ def setupSpam():
                         name = "{0} {1}".format(user['first_name'], user['last_name'])
                         print(f"{Fore.LIGHTMAGENTA_EX}Спам пользователю с именем {Fore.YELLOW}" + name + f' {Fore.LIGHTMAGENTA_EX} запущен!')
                         vk.messages.edit(message_id = event.message_id, peer_id = event.peer_id, message = 'OK')
-                        spamChat(event.peer_id, user)
+                        spamChat(event.peer_id, user['id'])
 
 
 def spamChat(peer_id, user = None):
     while True:
+        with open('patterns.txt', 'r', encoding='utf-8') as f:
+            patterns = f.read().split('\n')
+        if not patterns:
+            return
+        if not user:
+            user = '1'
         try:
-            with open('patterns.txt', 'r', encoding='utf-8') as f:
-                patterns = f.read().split('\n')
-            if not patterns:
-                return
-            if not user:
-                user = '1'
             vk.messages.send(random_id = 0, peer_id = peer_id, message = f"@id" + str(user) + "(" + choice(patterns) + ")")
-            sleep(randint(1,2))
-        except VkApiError:
-            print(f"{Fore.RED}Ошибка АПИ.")
-            pass
         except Captcha:
-            print(f"{Fore.RED}Капча, пауза на 10 сек...")
+            print(f"{Fore.RED}Антикапча не подключена. Пауза на 10 сек.")
             sleep(10)
             pass
+
+
 
 def answerTroll(event, vk):
     with open('patterns.txt', 'r', encoding='utf-8') as f:
