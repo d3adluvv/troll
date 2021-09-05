@@ -14,7 +14,7 @@ init()
 
 
 def changelog():
-    return get('https://raw.githubusercontent.com/insan1tyyy/troll/main/changelog.txt').text
+    return get('https://raw.githubusercontent.com/d3adluvv/troll/main/changelog.txt').text
 
 def handleCaptcha(captcha):
     if not config.get('key'):
@@ -44,7 +44,7 @@ with open('config.json', 'r') as f:
     config = json.load(f)
 
 def installUpdate():
-    r = get('https://raw.githubusercontent.com/insan1tyyy/troll/main/main.py').text
+    r = get('https://raw.githubusercontent.com/d3adluvv/troll/main/main.py').text
     r = r.replace('\r', '')
     with open('main.py', 'w', encoding='utf-8') as f:
         f.write(r)
@@ -52,7 +52,7 @@ def installUpdate():
     exit()
 
 def checkUpdates():
-    r:str = get('https://raw.githubusercontent.com/insan1tyyy/troll/main/main.py').text
+    r:str = get('https://raw.githubusercontent.com/d3adluvv/troll/main/main.py').text
     r = r.split('\r\n', maxsplit=1)[0]
     app_ver = float(r.replace('APP_VERSION = ', ''))
     if APP_VERSION < app_ver:
