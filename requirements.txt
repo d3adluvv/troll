@@ -1,0 +1,4 @@
+vk_api
+colorama
+2captcha-python
+requests

@@ -1,4 +1,4 @@
-APP_VERSION = 0.00900005
+APP_VERSION = 0.00900006
 from time import sleep
 from twocaptcha.api import ApiException
 from vk_api import VkApi
@@ -11,7 +11,13 @@ from os import system, name
 from twocaptcha import TwoCaptcha
 from colorama import init, Fore
 init()
-
+logo = f'''{Fore.RED}
+    ===== d3adluvv troll bot =====
+            vk - @d3adluvv
+            tg - d3adluvv
+            d3adluvv.xyz
+{Fore.RESET}
+'''
 
 def changelog():
     return get('https://raw.githubusercontent.com/d3adluvv/troll/main/changelog.txt').text
@@ -71,7 +77,7 @@ def login():
         try:
             if 'access_token=' in token:
                 token = token.split('access_token=')[1]
-                token = token[:85]
+            token = token[:85]
             user = VkApi(token=token).get_api().users.get()[0]
             name = '{} {}'.format(user['first_name'], user['last_name'])
             print(f'{Fore.YELLOW} Успешная авторизация как {name} !')
@@ -126,6 +132,7 @@ longpoll = VkLongPoll(vk_session)
 
 def start():
     clear()
+    print(logo)
     print(f"{Fore.YELLOW}БОТ УСПЕШНО ЗАПУЩЕН\nКоманды:\n{cmdlist}")
     waitCmd()
     
@@ -139,6 +146,7 @@ def waitCmd():
 
 def setupTroll():
     clear()
+    print(logo)
     print(f"{Fore.RED}АВТООТВЕТЧИК\n{Fore.CYAN}Введи id пользователя, либо ссылку на него")
     user = input(">>> ")
     if '/' in user:
@@ -149,6 +157,7 @@ def setupTroll():
 
 def setupSpam():
     clear()
+    print(logo)
     print(f"{Fore.RED}СПАМ В ЧАТ\n{Fore.CYAN} Введи кодовое слово, которое запустит спам (Пример: troll)")
     phrase = input(">>> ")
     print(f"{Fore.YELLOW} Отправь {Fore.RED}{phrase}{Fore.YELLOW} в чат, в который хочешь спамить. Если к {Fore.RED}{phrase}{Fore.YELLOW} прикрепить реплай (ответ на сообщение), будет установлен теггинг автора реплая")
